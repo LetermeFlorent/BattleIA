@@ -11,6 +11,7 @@ FetchContent_Declare(
   URL https://github.com/raysan5/raylib/archive/refs/tags/5.0.tar.gz
 )
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(BUILD_GAMES OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(raylib)
 
 # --- Configuration du projet ---
@@ -29,9 +30,12 @@ target_include_directories(BattleIA_App PRIVATE
 target_link_libraries(BattleIA_App PRIVATE raylib)
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(BattleIA_App PRIVATE GL m pthread dl rt X11)
+    # Dépendances système pour Raylib sur Linux
+    target_link_libraries(BattleIA_App PRIVATE GL m pthread dl rt X11 Xcursor Xinerama Xi)
 elseif(APPLE)
     target_link_libraries(BattleIA_App PRIVATE "-framework OpenGL" "-framework Cocoa" "-framework IOKit" "-framework CoreVideo")
+elseif(WIN32)
+    target_link_libraries(BattleIA_App PRIVATE winmm gdi32 opengl32 user32 shell32)
 endif()
 
 # Copie des ressources

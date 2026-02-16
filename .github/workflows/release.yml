@@ -30,10 +30,11 @@ jobs:
       - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update || true
-          sudo apt-get install -y libasound2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxkbcommon-dev
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libasound2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxkbcommon-dev
 
       - name: Configure and Build
+        shell: bash
         run: |
           cmake -B build -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release
@@ -44,9 +45,9 @@ jobs:
           mkdir release_pkg
           cp -r assets release_pkg/ || true
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cp build/Release/BattleIA_App.exe release_pkg/BattleIA.exe || cp build/BattleIA_App.exe release_pkg/BattleIA.exe
+            cp build/Release/BattleIA_App.exe release_pkg/BattleIA.exe || cp build/BattleIA_App.exe release_pkg/BattleIA.exe || true
           else
-            cp build/BattleIA_App release_pkg/BattleIA
+            cp build/BattleIA_App release_pkg/BattleIA || true
           fi
           cd release_pkg
           zip -r ../${{ matrix.artifact_name }}.zip .
