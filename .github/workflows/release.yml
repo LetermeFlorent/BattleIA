@@ -18,69 +18,51 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: BattleIA_Linux
-            asset_name: BattleIA_Linux_x64
           - os: windows-latest
             artifact_name: BattleIA_Windows
-            asset_name: BattleIA_Windows_x64.exe
           - os: macos-latest
             artifact_name: BattleIA_macOS
-            asset_name: BattleIA_macOS_vcpkg
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- LINUX ---
+      # --- DÉPENDANCES ---
       - name: Install Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update || true
+          sudo apt-get update
           sudo apt-get install -y libraylib-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxkbcommon-dev libwayland-dev
 
-      - name: Build (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: make
-
-      # --- WINDOWS ---
-      - name: Install Raylib (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          vcpkg install raylib:x64-windows
-          vcpkg integrate install
-
-      - name: Build (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          # Utilisation de MSBuild pour le fichier .vcxproj existant
-          # On ajuste les chemins pour pointer vers vcpkg
-          msbuild BattleIA.vcxproj /p:Configuration=Release /p:Platform=x64 /p:Linkage=static
-
-      # --- macOS ---
-      - name: Install Raylib (macOS)
+      - name: Install Dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install raylib
 
-      - name: Build (macOS)
-        if: matrix.os == 'macos-latest'
+      - name: Install Dependencies (Windows)
+        if: matrix.os == 'windows-latest'
+        run: vcpkg install raylib:x64-windows
+
+      # --- BUILD AVEC CMAKE ---
+      - name: Configure CMake
         run: |
-          g++ -std=c++17 -O2 -I./src -I./external -I./external/entt $(find src -name "*.cpp" ! -name "DiagnoseEntity.cpp" ! -name "FlecsEntityManager.cpp") -o BattleIA_macOS -lraylib -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
+          cmake -B build \
+            ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake' || '' }} \
+            -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
 
       # --- PACKAGING ---
       - name: Prepare Artifact
-        run: |
-          mkdir release_pkg
-          cp -r assets release_pkg/ || true
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            cp x64/Release/BattleIA.exe release_pkg/${{ matrix.asset_name }} || cp BattleIA.exe release_pkg/${{ matrix.asset_name }} || true
-          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            cp BattleIA_macOS release_pkg/${{ matrix.asset_name }} || true
-          else
-            cp BattleIA_App release_pkg/${{ matrix.asset_name }} || true
-          fi
-
-      - name: Zip Release
         shell: bash
         run: |
+          mkdir release_pkg
+          cp -r assets release_pkg/
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cp build/Release/BattleIA_App.exe release_pkg/BattleIA.exe || cp build/BattleIA_App.exe release_pkg/BattleIA.exe
+          else
+            cp build/BattleIA_App release_pkg/BattleIA
+          fi
           cd release_pkg
           zip -r ../${{ matrix.artifact_name }}.zip .
 
