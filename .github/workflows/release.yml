@@ -27,37 +27,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- DÉPENDANCES ---
-      - name: Install Dependencies (Linux)
+      - name: Install System Dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libraylib-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxkbcommon-dev libwayland-dev
+          sudo apt-get update || true
+          sudo apt-get install -y libasound2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxkbcommon-dev
 
-      - name: Install Dependencies (macOS)
-        if: matrix.os == 'macos-latest'
-        run: brew install raylib
-
-      - name: Install Dependencies (Windows)
-        if: matrix.os == 'windows-latest'
-        run: vcpkg install raylib:x64-windows
-
-      # --- BUILD AVEC CMAKE ---
-      - name: Configure CMake
+      - name: Configure and Build
         run: |
-          cmake -B build \
-            ${{ matrix.os == 'windows-latest' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake' || '' }} \
-            -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
 
-      - name: Build
-        run: cmake --build build --config Release
-
-      # --- PACKAGING ---
       - name: Prepare Artifact
         shell: bash
         run: |
           mkdir release_pkg
-          cp -r assets release_pkg/
+          cp -r assets release_pkg/ || true
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             cp build/Release/BattleIA_App.exe release_pkg/BattleIA.exe || cp build/BattleIA_App.exe release_pkg/BattleIA.exe
           else
