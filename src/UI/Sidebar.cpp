@@ -82,7 +82,7 @@ void Sidebar::Draw(EntityManager& em, float sidebarWidth, int selectedID, float 
         if (sel) {
             Rectangle insp = { 15, lY, sidebarWidth - 30, 80 };
             DrawRectangleRounded(insp, 0.2f, 8, sel->active ? UI_CARD_BG : UI_DEAD_BG);
-            DrawRectangleRoundedLines(insp, 0.2f, 8, 1.0f, sel->active ? UI_ACCENT : RED);
+            DrawRectangleRoundedLines(insp, 0.2f, 8, sel->active ? UI_ACCENT : RED);
             DrawCircle((int)(insp.x + 30), (int)(insp.y + 40), 20, sel->active ? UI_ACCENT : RED);
             DrawTextEx(font, TextFormat("%i", sel->id), Vector2{ insp.x + 22, insp.y + 32 }, 16, 1.0f, WHITE);
             DrawTextEx(font, sel->name.c_str(), Vector2{ insp.x + 60, insp.y + 10 }, 16, 1.0f, UI_TEXT_MAIN);
@@ -126,7 +126,7 @@ void Sidebar::Draw(EntityManager& em, float sidebarWidth, int selectedID, float 
         bool sel = (e->id == selectedID);
         Rectangle r = { 10.0f, iy, sidebarWidth - 20, rowH - 6 };
         DrawRectangleRounded(r, 0.2f, 8, e->active ? (sel ? UI_ACCENT_DIM : UI_MAIN_BG) : UI_DEAD_BG);
-        if (sel) DrawRectangleRoundedLines(r, 0.2f, 8, 1.0f, UI_ACCENT);
+        if (sel) DrawRectangleRoundedLines(r, 0.2f, 8, UI_ACCENT);
 
         DrawTextEx(font, TextFormat("#%i", i + 1), Vector2{ 20, iy + 18 }, 12, 1.0f, UI_TEXT_DIM);
         DrawTextEx(font, e->name.c_str(), Vector2{ 50, iy + 18 }, 12, 1.0f, UI_TEXT_MAIN);
