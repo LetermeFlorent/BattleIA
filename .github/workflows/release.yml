@@ -53,8 +53,13 @@ jobs:
           else
             cp build/BattleIA_App release_pkg/BattleIA || true
           fi
+          
           cd release_pkg
-          zip -r ../${{ matrix.artifact_name }}.zip .
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a ../${{ matrix.artifact_name }}.zip .
+          else
+            zip -r ../${{ matrix.artifact_name }}.zip .
+          fi
 
       - name: Upload Release Artifact
         uses: softprops/action-gh-release@v1
