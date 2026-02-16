@@ -1,14 +1,48 @@
+# Binaries and Build Artifacts
+BattleIA_App
+BattleIA
+*.o
+*.a
+*.so
+*.out
+build/
+bin/
+obj/
+x64/
+Debug/
+Release/
+
 # Visual Studio
 .vs/
-*.ipch
+*.sln.dotsettings.user
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.ncb
+*.opensdf
+*.sdf
+*.cache
+*.db
+*.opendb
+
+# Compilation / Linker
 *.obj
 *.pdb
 *.ilk
 *.log
+*.tlog
+*.lastbuildstate
+*.idb
+*.recipe
 
-# Build
-bin/
-obj/
+# Data / Saves
+save.dat
 
-# Caches
-__pycache__/
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies (if local)
+# external/raylib/lib/*
+# !external/raylib/lib/raylib.lib

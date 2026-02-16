@@ -78,12 +78,41 @@ void EntityManager::RespawnAll(Map& map) {
 }
 
 void EntityManager::EvolveGeneration() {
+    // 1. Trier tous les bots par ELO (les meilleurs en premier)
     std::vector<Entity*> ranked;
     for (auto& e : entities) ranked.push_back(&e);
     std::sort(ranked.begin(), ranked.end(), [](Entity* a, Entity* b) { return a->elo > b->elo; });
-    if (ranked.size() >= 3) {
-        ranked[0]->elo *= 1.1f;
+
+    int total = (int)ranked.size();
+    int survivorsCount = total / 4; // Top 25% survivent
+
+    // 2. Les survivants reçoivent une petite mutation bénéfique (dérive)
+    for (int i = 0; i < survivorsCount; i++) {
+        Entity& e = *ranked[i];
+        e.brain.aggression = Clamp(e.brain.aggression + GetRandomFloat(-0.05f, 0.05f), 0.1f, 1.0f);
+        e.brain.greed = Clamp(e.brain.greed + GetRandomFloat(-0.05f, 0.05f), 0.1f, 1.0f);
+        e.brain.precision = Clamp(e.brain.precision + GetRandomFloat(-0.05f, 0.05f), 0.1f, 1.0f);
+        // Bonus ELO pour le champion
+        if (i == 0) e.elo *= 1.05f; 
     }
+
+    // 3. Remplacer les moins bons (75%) par des descendants des survivants
+    for (int i = survivorsCount; i < total; i++) {
+        // On choisit un parent au hasard parmi les survivants
+        int parentIdx = GetRandomValue(0, survivorsCount - 1);
+        Entity& parent = *ranked[parentIdx];
+        Entity& child = *ranked[i];
+
+        // Transmission des traits avec mutation plus forte
+        child.brain.aggression = Clamp(parent.brain.aggression + GetRandomFloat(-0.15f, 0.15f), 0.1f, 1.0f);
+        child.brain.greed = Clamp(parent.brain.greed + GetRandomFloat(-0.15f, 0.15f), 0.1f, 1.0f);
+        child.brain.precision = Clamp(parent.brain.precision + GetRandomFloat(-0.15f, 0.15f), 0.1f, 1.0f);
+        child.brain.teamSpirit = Clamp(parent.brain.teamSpirit + GetRandomFloat(-0.1f, 0.1f), 0.0f, 1.0f);
+
+        // Reset de l'ELO pour le descendant (mais hérite d'une partie du prestige du parent)
+        child.elo = (float)AI_BASE_ELO + (parent.elo * 0.1f);
+    }
+
     SaveData();
 }
 
